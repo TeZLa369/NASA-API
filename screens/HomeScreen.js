@@ -10,13 +10,12 @@ import {
   TouchableOpacity
 } from 'react-native';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import FullSkeleton from '../components/FullSkeleton';
 import Ionicons from '@react-native-vector-icons/ionicons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const HomeScreen = () => {
@@ -26,16 +25,14 @@ const HomeScreen = () => {
   const [readMorePressed, setReadMorePressed] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [fav, setfav] = useState(false);
+  const [apiData, setApiData] = useState(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateAnim = useRef(new Animated.Value(6)).current;
 
-  const favData = {
-    date: selectedDate,
-    title: "...",
-    url: "https://...",
-    explanation: "...",
-  }
+  const today = new Date();
+  const formattedDate = today.toISOString().split("T")[0]
+
 
   function startFade() {
     setImageLoaded(true);
@@ -52,18 +49,63 @@ const HomeScreen = () => {
     }).start();
   }
 
+  async function fetchData(date) {
 
+    try {
+      const res = await fetch(`https://api.nasa.gov/planetary/apod?api_key=FslTHKX6MyjOnvyW0hlGl5r3AEb1eY9qBv8hXu7P&date=${date}`);
+      const data = await res.json();
 
-  let expTxt = "What did Comet Lemmon look like when it was at its best? One example is pictured here, featuring three celestial spectacles all at different distances. The closest spectacle is the snowcapped Meili Mountains, part of the Himalayas in China. The middle marvel is Comet Lemmon near its picturesque best early this month, showing not only a white dust tail trailing off to the right but its blue solar wind-distorted ion tail trailing off to the left. Far in the distance on the left is the magnificent central plane of our Milky Way Galaxy, featuring dark dust, red nebula, and including billions of Sun-like stars. Comet C/2025 A6 (Lemmon) is already fading as it heads back into the outer Solar System, while the Himalayan mountains will gradually erode over the next billion years. The Milky Way Galaxy, though, will live on -- forming new mountains and comets -- for many billions of years into the future.";
+      setApiData(data);
 
+    } catch (error) {
+      console.log("Unable to fetch data: ", error)
+    }
+  }
+
+  useEffect(() => {
+    selectedDate ? fetchData(selectedDate) :
+      fetchData(formattedDate);
+  }, [])
+
+  let expTxt;
+  { apiData ? expTxt = apiData.explanation : expTxt = "Loading..." }
+
+  function apiDate() {
+    if (!apiData || !apiData.date) return "Loading date...";
+    const date = new Date(apiData?.date);
+
+    const newDate = date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric"
+    })
+    return newDate;
+
+  }
 
   function dateTxt() {
-    const formatted = monthDate.toLocaleDateString("en-US", {
+    const formatted = monthDate?.toLocaleDateString("en-US", {
       month: "short",
       day: "2-digit",
       year: "numeric"
     });
     return formatted;
+  }
+
+  // ! FAV Data
+  const favData = {
+    date: dateTxt() ? dateTxt() : apiDate(),
+    title: apiData?.title,
+    url: apiData?.url,
+    explanation: expTxt,
+  }
+
+  async function saveData(key, value) {
+    // await AsyncStorage.setItem("21", "value");
+    try {
+    } catch (error) {
+      console.error("Can't add to fav: ", error);
+    }
   }
 
 
@@ -78,18 +120,21 @@ const HomeScreen = () => {
         <Pressable style={styles.dateStyle} onPress={() => {
           setcalender(true)
         }}>
-          <Text style={[{ fontSize: 16, color: selectedDate ? "#FFFFFF" : "#1E90FF" }]}> 🗓️ {selectedDate ? dateTxt() : "Select a date"}</Text>
+          <Text style={[{ fontSize: 16, color: "#FFFFFF" }]}> 🗓️ {dateTxt() ? dateTxt() : apiDate()} ▼</Text>
+
           <DateTimePickerModal
             isVisible={calender}
             mode='date'
             minimumDate={new Date(1995, 5, 16)}
             maximumDate={new Date()}
             themeVariant='dark'
-            onCancel={() => { setcalender(false) }}
+            date={monthDate}
+            onCancel={() => { setcalender(false); }}
             onConfirm={(date) => {
               const formattedDate = date.toISOString().split("T")[0];
               setSelectedDate(formattedDate);
               setmonthDate(date)
+              fetchData(formattedDate);
               setcalender(false);
             }}
           />
@@ -108,16 +153,20 @@ const HomeScreen = () => {
           >
             {/* //! IMAGE */}
             <Image
-              source={{ uri: "https://apod.nasa.gov/apod/image/2511/MilkyLemmon_Zixuan_5008.jpg" }}
+              source={{ uri: apiData ? apiData.url : "" }}
               style={{ width: '100%', height: '100%', borderRadius: 12 }}
-              onLoadEnd={() => startFade()}   // <-- triggers animation
+              onLoadEnd={() => startFade()}
             />
 
             {/* //! HEART */}
             <View style={styles.favoriteBtn}>
-              <TouchableOpacity onPress={() => { setfav(!fav); }}>
+              <TouchableOpacity onPress={() => {
+                setfav(!fav);
+
+              }}>
                 {fav ?
-                  (<Ionicons name='heart' size={24} color={"#DF0000FF"} />) : (<Ionicons name='heart' color={"#D0D0D0FF"} size={24} />)
+                  (<Ionicons name='heart' size={24} color={"#DF0000FF"} />) :
+                  (<Ionicons name='heart' color={"#D0D0D0FF"} size={24} />)
                 }
 
               </TouchableOpacity>
@@ -140,7 +189,7 @@ const HomeScreen = () => {
                 }
               ]}
             >
-              Comet Lemmon and the Milky Way
+              {apiData ? apiData.title : "Loading Title..."}
             </Animated.Text>
           </Animated.View>
         </View>
