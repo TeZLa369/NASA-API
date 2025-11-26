@@ -11,8 +11,10 @@ const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
     return (
         <Tab.Navigator
+
             initialRouteName="APOD"
             screenOptions={({ route }) => ({
+
                 tabBarIcon: ({ focused, size }) => {
                     let iconSource;
                     if (route.name === "APOD") {
@@ -28,20 +30,21 @@ const TabNavigator = () => {
                     return (
                         <Image
                             source={iconSource}
-                            style={{ width: 50, height: 50, padding: 10 }}
+                            style={{ width: 50, height: 50, marginBottom: 16 }}
                             resizeMode="contain"
                         />
                     );
                 },
                 tabBarShowLabel: true,
-                headerShown: false,
+                headerShown: true,
+
+                headerTitleAlign: "center",
+                headerStyle: { backgroundColor: "#000000"},
                 tabBarStyle: {
                     backgroundColor: "black",
                     borderTopColor: "#222",
-                    paddingBottom: 15,
-                    paddingTop: 10,
+                    paddingTop: "7%",
                     height: 100,
-
                     alignContent: "center",
                     alignItems: "center"
                 },
@@ -49,7 +52,9 @@ const TabNavigator = () => {
                 tabBarInactiveTintColor: "gray",
             })}
         >
-            <Tab.Screen name="APOD" component={HomeScreen} />
+            <Tab.Screen options={{
+                headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
+            }} name="APOD" component={HomeScreen} />
             <Tab.Screen name="Asteroid" component={Asteroid} />
             <Tab.Screen name="Rover" component={Mars_rover} />
             <Tab.Screen name="Favorites" component={Favs} />

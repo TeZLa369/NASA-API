@@ -5,6 +5,7 @@ export default {
         name: "NASA-API",
         slug: "nasa-api",
         owner: "tezla",
+        icon:"../assets/nasa.png",
 
         extra: {
             nasaApiKey: process.env.NASA_API_KEY,
@@ -17,11 +18,12 @@ export default {
             image: "./assets/nasa.png",
             resizeMode: "contain",
             backgroundColor: "#000000",
+
         },
 
         android: {
-            package: "com.kuntal.nasaapi", 
-            versionCode: 1,             
+            package: "com.kuntal.nasaapi",
+            versionCode: 1,
         },
     },
 };
