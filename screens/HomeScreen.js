@@ -9,7 +9,8 @@ import {
   Animated,
   TouchableOpacity
 } from 'react-native';
-
+import Constants from "expo-constants";
+const NASA_KEY = Constants.expoConfig.extra.nasaApiKey;
 import React, { useState, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -52,7 +53,7 @@ const HomeScreen = () => {
 
   async function fetchData(date) {
     try {
-      const res = await fetch(`https://api.nasa.gov/planetary/apod?api_key=FslTHKX6MyjOnvyW0hlGl5r3AEb1eY9qBv8hXu7P&date=${date}`);
+      const res = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}&date=${date}`);
       const data = await res.json();
 
       console.log(data.url)
