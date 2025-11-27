@@ -16,6 +16,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import FullSkeleton from '../components/FullSkeleton';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const HomeScreen = () => {
@@ -50,12 +51,20 @@ const HomeScreen = () => {
   }
 
   async function fetchData(date) {
-
     try {
       const res = await fetch(`https://api.nasa.gov/planetary/apod?api_key=FslTHKX6MyjOnvyW0hlGl5r3AEb1eY9qBv8hXu7P&date=${date}`);
       const data = await res.json();
 
+      console.log(data.url)
       setApiData(data);
+
+      if (await load(String(date)) === null) {
+        setfav(false)
+        // console.log("false")
+      } else {
+        setfav(true)
+        // console.log("true")
+      }
 
     } catch (error) {
       console.log("Unable to fetch data: ", error)
@@ -101,12 +110,33 @@ const HomeScreen = () => {
   }
 
   async function saveData(key, value) {
-    // await AsyncStorage.setItem("21", "value");
     try {
+      await AsyncStorage.setItem(key, value);
+      console.log("Data is saved");
     } catch (error) {
       console.error("Can't add to fav: ", error);
     }
   }
+  async function removeData(key) {
+    try {
+      await AsyncStorage.removeItem(key);
+      console.log("Data is removed");
+    } catch (error) {
+
+      console.error("Can't remove from fav: ", error);
+    }
+  }
+
+
+  async function load(key) {
+    try {
+      const data = await AsyncStorage.getItem(key);
+      return data;
+    } catch (error) {
+      console.log("Error while loading data: ", error);
+    }
+  }
+
 
 
   return (
@@ -152,8 +182,10 @@ const HomeScreen = () => {
             }}
           >
             {/* //! IMAGE */}
+
             <Image
-              source={{ uri: apiData ? apiData.url : "" }}
+              source={apiData?.url ? { uri: apiData ? apiData.url : "" } : require("../assets/noPng3.png")}
+
               style={{ width: '100%', height: '100%', borderRadius: 12 }}
               onLoadEnd={() => startFade()}
             />
@@ -162,7 +194,8 @@ const HomeScreen = () => {
             <View style={styles.favoriteBtn}>
               <TouchableOpacity onPress={() => {
                 setfav(!fav);
-
+                !fav ?
+                  saveData(String(apiData.date), String(apiData.date)) : removeData(String(apiData.date));
               }}>
                 {fav ?
                   (<Ionicons name='heart' size={24} color={"#DF0000FF"} />) :
@@ -209,7 +242,7 @@ const HomeScreen = () => {
               expTxt.length > 220 ? (
                 <><Text style={styles.explanation}>
                   {expTxt.substring(0, 220)}...
-                </Text><Pressable onPress={() => { setReadMorePressed(true) }}>
+                </Text><Pressable onPress={() => { setReadMorePressed(true); }}>
                     <Text style={{ color: "#1E90FF", marginTop: 4, fontWeight: 500 }}>Read more</Text>
                   </Pressable>
                 </>
