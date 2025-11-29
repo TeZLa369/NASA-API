@@ -142,36 +142,35 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView edges={["left", "right",]} style={styles.container}>
+      <StatusBar barStyle='light-content' />
+      {/* //! TITLE */}
+      <Text style={[styles.mainTxt, { fontSize: 18 }]}>Astronomy Picture of the Day</Text>
+
+      {/* //! DATE */}
+      <Pressable style={styles.dateStyle} onPress={() => {
+        setcalender(true)
+      }}>
+        <Text style={[{ fontSize: 16, color: "#FFFFFF" }]}> 🗓️ {dateTxt() ? dateTxt() : apiDate()} ▼</Text>
+
+        <DateTimePickerModal
+          isVisible={calender}
+          mode='date'
+          minimumDate={new Date(1995, 5, 16)}
+          maximumDate={new Date()}
+          themeVariant='dark'
+          date={monthDate}
+          onCancel={() => { setcalender(false); }}
+          onConfirm={(date) => {
+            const formattedDate = date.toISOString().split("T")[0];
+            setSelectedDate(formattedDate);
+            setmonthDate(date)
+            fetchData(formattedDate);
+            setcalender(false);
+          }}
+        />
+      </Pressable>
+
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 12, paddingBottom: 40 }} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        <StatusBar barStyle='light-content' />
-        {/* //! TITLE */}
-        <Text style={[styles.mainTxt, { fontSize: 18 }]}>Astronomy Picture of the Day</Text>
-
-        {/* //! DATE */}
-        <Pressable style={styles.dateStyle} onPress={() => {
-          setcalender(true)
-        }}>
-          <Text style={[{ fontSize: 16, color: "#FFFFFF" }]}> 🗓️ {dateTxt() ? dateTxt() : apiDate()} ▼</Text>
-
-          <DateTimePickerModal
-            isVisible={calender}
-            mode='date'
-            minimumDate={new Date(1995, 5, 16)}
-            maximumDate={new Date()}
-            themeVariant='dark'
-            date={monthDate}
-            onCancel={() => { setcalender(false); }}
-            onConfirm={(date) => {
-              const formattedDate = date.toISOString().split("T")[0];
-              setSelectedDate(formattedDate);
-              setmonthDate(date)
-              fetchData(formattedDate);
-              setcalender(false);
-            }}
-          />
-        </Pressable>
-
-
         <View style={styles.imageContainer}>
           {!imageLoaded && <FullSkeleton width="100%" imageHeight={250} />}
 
@@ -265,8 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0
   },
   dateStyle: {
-    marginTop: 8,
-    marginBottom: 8,
+    margin: 8,
     backgroundColor: "#111111",
     borderWidth: 0.2,
     borderColor: "#1E90FF",
@@ -283,7 +281,8 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginTop: 6,
     fontSize: 20,
-    color: "#dadada"
+    color: "#dadada",
+    paddingHorizontal: 12,
   },
   imageContainer: {
     overflow: "hidden",

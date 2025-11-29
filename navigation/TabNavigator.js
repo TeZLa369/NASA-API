@@ -1,14 +1,22 @@
 import { Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import HomeScreen from '../screens/HomeScreen';
 import Asteroid from '../screens/Asteroid';
 import Mars_rover from '../screens/Mars_rover';
 import Favs from '../screens/Favs';
+import HomeScreen from '../screens/HomeScreen';
+import { useState } from 'react';
+import TabIcon from "../components/TabIcon";
+
 
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+
+    const [gifOFF, setgifOFF] = useState(true);
+
+    let [iconSource, seticonSource] = useState("");
+
     return (
         <Tab.Navigator
 
@@ -16,37 +24,54 @@ const TabNavigator = () => {
             screenOptions={({ route }) => ({
 
                 tabBarIcon: ({ focused, size }) => {
-                    let iconSource;
                     if (route.name === "APOD") {
-                        iconSource = require("../assets/nasa.png");
-                    } else if (route.name === "Asteroid") {
-                        iconSource = require("../assets/asteroid.png");
-                    } else if (route.name === "Rover") {
-                        iconSource = require("../assets/rover.png");
-                    } else if (route.name === "Favorites") {
-                        iconSource = require("../assets/heart.png");
+                        return (
+                            <TabIcon
+                                focused={focused}
+                                gif={require("../assets/APOD_GIF.gif")}
+                                png={require("../assets/APOD.png")}
+                            />
+                        );
                     }
-
-                    return (
-                        <Image
-                            source={iconSource}
-                            style={{ width: 50, height: 50, marginBottom: 16 }}
-                            resizeMode="contain"
-                        />
-                    );
+                    if (route.name === "Asteroid") {
+                        return (
+                            <TabIcon
+                                focused={focused}
+                                gif={require("../assets/asteroid_gif.gif")}
+                                png={require("../assets/asteroid.png")}
+                            />
+                        );
+                    }
+                    if (route.name === "Rover") {
+                        return (
+                            <TabIcon
+                                focused={focused}
+                                gif={require("../assets/rover_gif.gif")}
+                                png={require("../assets/rover.png")}
+                            />
+                        );
+                    }
+                    if (route.name === "Favorites") {
+                        return (
+                            <TabIcon
+                                focused={focused}
+                                gif={require("../assets/heart_gif.gif")}
+                                png={require("../assets/heart.png")}
+                            />
+                        );
+                    }
                 },
                 tabBarShowLabel: true,
                 headerShown: true,
-
                 headerTitleAlign: "center",
-                headerStyle: { backgroundColor: "#000000"},
+                headerStyle: { backgroundColor: "#000000" },
                 tabBarStyle: {
                     backgroundColor: "black",
                     borderTopColor: "#222",
                     paddingTop: "7%",
                     height: 100,
                     alignContent: "center",
-                    alignItems: "center"
+                    alignItems: "center",
                 },
                 tabBarActiveTintColor: "white",
                 tabBarInactiveTintColor: "gray",
@@ -55,10 +80,14 @@ const TabNavigator = () => {
             <Tab.Screen options={{
                 headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
             }} name="APOD" component={HomeScreen} />
-            <Tab.Screen name="Asteroid" component={Asteroid} />
-            <Tab.Screen name="Rover" component={Mars_rover} />
-            <Tab.Screen name="Favorites" component={Favs} />
-        </Tab.Navigator>
+            <Tab.Screen options={{ headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />) }} name="Asteroid" component={Asteroid} />
+            <Tab.Screen options={{
+                headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
+            }} name="Rover" component={Mars_rover} />
+            <Tab.Screen options={{
+                headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
+            }} name="Favorites" component={Favs} />
+        </Tab.Navigator >
     );
 };
 
