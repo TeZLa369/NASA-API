@@ -7,7 +7,8 @@ import {
   ScrollView,
   Pressable,
   Animated,
-  TouchableOpacity
+  TouchableOpacity,
+  ImageBackground
 } from 'react-native';
 import Constants from "expo-constants";
 const NASA_KEY = Constants.expoConfig.extra.nasaApiKey;
@@ -16,8 +17,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import FullSkeleton from '../components/FullSkeleton';
-import Ionicons from '@react-native-vector-icons/ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { audioBgm, pauseBgm } from "../components/audioBgm";
 
 
 const HomeScreen = () => {
@@ -28,6 +30,7 @@ const HomeScreen = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [fav, setfav] = useState(false);
   const [apiData, setApiData] = useState(null);
+  const [isBgmPlaying, setIsBgmPlaying] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateAnim = useRef(new Animated.Value(6)).current;
@@ -56,7 +59,6 @@ const HomeScreen = () => {
       const res = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}&date=${date}`);
       const data = await res.json();
 
-      console.log(data.url)
       setApiData(data);
 
       if (await load(String(date)) === null) {
@@ -83,6 +85,7 @@ const HomeScreen = () => {
   function apiDate() {
     if (!apiData || !apiData.date) return "Loading date...";
     const date = new Date(apiData?.date);
+   
 
     const newDate = date.toLocaleDateString("en-US", {
       month: "short",
@@ -142,115 +145,139 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView edges={["left", "right",]} style={styles.container}>
-      <StatusBar barStyle='light-content' />
-      {/* //! TITLE */}
-      <Text style={[styles.mainTxt, { fontSize: 18 }]}>Astronomy Picture of the Day</Text>
 
-      {/* //! DATE */}
-      <Pressable style={styles.dateStyle} onPress={() => {
-        setcalender(true)
-      }}>
-        <Text style={[{ fontSize: 16, color: "#FFFFFF" }]}> 🗓️ {dateTxt() ? dateTxt() : apiDate()} ▼</Text>
 
-        <DateTimePickerModal
-          isVisible={calender}
-          mode='date'
-          minimumDate={new Date(1995, 5, 16)}
-          maximumDate={new Date()}
-          themeVariant='dark'
-          date={monthDate}
-          onCancel={() => { setcalender(false); }}
-          onConfirm={(date) => {
-            const formattedDate = date.toISOString().split("T")[0];
-            setSelectedDate(formattedDate);
-            setmonthDate(date)
-            fetchData(formattedDate);
-            setcalender(false);
-          }}
-        />
-      </Pressable>
+      <ImageBackground
+        source={{ uri: apiData?.url }}
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 12, paddingBottom: 40 }} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        <View style={styles.imageContainer}>
-          {!imageLoaded && <FullSkeleton width="100%" imageHeight={250} />}
+        blurRadius={25}
+        fadeDuration={1000}
+        style={styles.imgBackground}>
 
-          <Animated.View
-            style={{
-              ...StyleSheet.absoluteFillObject,
-              opacity: fadeAnim,
-              transform: [{ translateY: translateAnim }],
-            }}
-          >
-            {/* //! IMAGE */}
+        <View style={[{
+          backgroundColor: 'rgba(0,0,0,0.4)', alignItems: "center"
+        }, StyleSheet.absoluteFillObject]} >
 
-            <Image
-              source={apiData?.url ? { uri: apiData ? apiData.url : "" } : require("../assets/noPng3.png")}
+          {/* //! TITLE */}
+          <Text style={[styles.mainTxt, { fontSize: 18 }]}>Astronomy Picture of the Day</Text>
 
-              style={{ width: '100%', height: '100%', borderRadius: 12 }}
-              onLoadEnd={() => startFade()}
-            />
+          <View style={styles.dateMuteContainer}>
+            {/* //! DATE */}
+            <TouchableOpacity style={styles.dateStyle} onPress={() => {
+              setcalender(true)
+            }}>
+              <Text style={[{ fontSize: 16, color: "#FFFFFF" }]}> 🗓️ {dateTxt() ? dateTxt() : apiDate()} ▼</Text>
 
-            {/* //! HEART */}
-            <View style={styles.favoriteBtn}>
-              <TouchableOpacity onPress={() => {
-                setfav(!fav);
-                !fav ?
-                  saveData(String(apiData.date), String(apiData.date)) : removeData(String(apiData.date));
-              }}>
-                {fav ?
-                  (<Ionicons name='heart' size={24} color={"#DF0000FF"} />) :
-                  (<Ionicons name='heart' color={"#D0D0D0FF"} size={24} />)
-                }
+              <DateTimePickerModal
+                isVisible={calender}
+                mode='date'
+                minimumDate={new Date(1995, 5, 16)}
+                maximumDate={new Date()}
+                themeVariant='dark'
+                date={monthDate}
+                onCancel={() => { setcalender(false); }}
+                onConfirm={(date) => {
+                  const formattedDate = date.toISOString().split("T")[0];
+                  setSelectedDate(formattedDate);
+                  setmonthDate(date)
+                  fetchData(formattedDate);
+                  setcalender(false);
+                }}
+              />
+            </TouchableOpacity>
 
-              </TouchableOpacity>
+            {/*//! MUTE BTN  */}
+            <TouchableOpacity onPress={() => {
+              setIsBgmPlaying(!isBgmPlaying);
+              !isBgmPlaying ? audioBgm() : pauseBgm();
+
+            }}>
+              <Ionicons style={styles.muteBtn} name={isBgmPlaying ? "volume-high" : 'volume-mute'} size={20} color={"#ffffff"} />
+            </TouchableOpacity>
+
+
+          </View>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 12, paddingBottom: 40 }} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
+            <View style={styles.imageContainer}>
+              {!imageLoaded && <FullSkeleton width="100%" imageHeight={250} />}
+
+              <Animated.View
+                style={{
+                  ...StyleSheet.absoluteFillObject,
+                  opacity: fadeAnim,
+                  transform: [{ translateY: translateAnim }],
+                }}
+              >
+                {/* //! IMAGE */}
+
+                <Image
+                  source={apiData?.url ? { uri: apiData ? apiData.url : "" } : require("../assets/noPng3.png")}
+
+                  style={{ width: '100%', height: '100%', borderRadius: 12 }}
+                  onLoadEnd={() => startFade()}
+                />
+
+                {/* //! HEART */}
+                <View style={styles.favoriteBtn}>
+                  <TouchableOpacity onPress={() => {
+                    setfav(!fav);
+                    !fav ?
+                      saveData(String(apiData.date), String(apiData.date)) : removeData(String(apiData.date));
+                  }}>
+                    {fav ?
+                      (<Ionicons name='heart' size={24} color={"#DF0000FF"} />) :
+                      (<Ionicons name='heart' color={"#D0D0D0FF"} size={24} />)
+                    }
+
+                  </TouchableOpacity>
+                </View>
+
+
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.85)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={styles.gradient}
+                />
+
+                <Animated.Text
+                  style={[
+                    styles.subtitle,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{ translateY: translateAnim }],
+                    }
+                  ]}
+                >
+                  {apiData ? apiData.title : "Loading Title..."}
+                </Animated.Text>
+              </Animated.View>
             </View>
 
 
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.85)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.gradient}
-            />
-
-            <Animated.Text
-              style={[
-                styles.subtitle,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: translateAnim }],
-                }
-              ]}
-            >
-              {apiData ? apiData.title : "Loading Title..."}
-            </Animated.Text>
-          </Animated.View>
-        </View>
-
-
-        {/* //! EXPLANATION */}
-        <View style={{
-          marginTop: 14
-        }}>
-          {readMorePressed ? (<><Text style={styles.explanation} >{expTxt}</Text>
-            <Pressable onPress={() => { setReadMorePressed(false) }}>
-              <Text style={[styles.explanation, { color: "#1E90FF", marginTop: 4, fontWeight: 500 }]}>See less</Text>
-            </Pressable>
-          </>
-          ) : (
-            <>{
-              expTxt.length > 220 ? (
-                <><Text style={styles.explanation}>
-                  {expTxt.substring(0, 220)}...
-                </Text><Pressable onPress={() => { setReadMorePressed(true); }}>
-                    <Text style={{ color: "#1E90FF", marginTop: 4, fontWeight: 500 }}>Read more</Text>
-                  </Pressable>
-                </>
-              ) : (<Text style={styles.explanation}>{expTxt}</Text>)
-            }</>)}
-        </View>
-        <Text style={styles.credits}>© NASA APOD</Text>
-      </ScrollView>
+            {/* //! EXPLANATION */}
+            <View style={{
+              marginTop: 14
+            }}>
+              {readMorePressed ? (<><Text style={styles.explanation} >{expTxt}</Text>
+                <Pressable onPress={() => { setReadMorePressed(false) }}>
+                  <Text style={[styles.explanation, { color: "#1E90FF", marginTop: 4, fontWeight: 500 }]}>See less</Text>
+                </Pressable>
+              </>
+              ) : (
+                <>{
+                  expTxt.length > 220 ? (
+                    <><Text style={styles.explanation}>
+                      {expTxt.substring(0, 220)}...
+                    </Text><Pressable onPress={() => { setReadMorePressed(true); }}>
+                        <Text style={{ color: "#1E90FF", marginTop: 4, fontWeight: 500 }}>Read more</Text>
+                      </Pressable>
+                    </>
+                  ) : (<Text style={styles.explanation}>{expTxt}</Text>)
+                }</>)}
+            </View>
+            <Text style={styles.credits}>© NASA APOD</Text>
+          </ScrollView>   </View> </ImageBackground >
     </SafeAreaView>
   )
 }
@@ -258,6 +285,21 @@ const HomeScreen = () => {
 export default HomeScreen
 
 const styles = StyleSheet.create({
+  dateMuteContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly"
+  },
+  muteBtn: {
+    backgroundColor: "#11111117",
+    elevation: 8,
+    padding: 8,
+    borderRadius: 20
+  },
+  imgBackground: {
+    resizeMode: "cover",
+    flex: 1,
+  },
   container: {
     backgroundColor: "#000000",
     flex: 1,
@@ -265,24 +307,31 @@ const styles = StyleSheet.create({
   },
   dateStyle: {
     margin: 8,
-    backgroundColor: "#111111",
-    borderWidth: 0.2,
-    borderColor: "#1E90FF",
+    backgroundColor: "#11111117",
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     alignItems: "center",
     gap: 6,
+    width: "50%",
+    elevation: 8
   },
+  // mainTxt: {
+  //   textAlign: "left",
+  //   marginTop: "12%",
+  //   fontSize: 20,
+  //   color: "#dadada",
+  //   paddingHorizontal: 12,
+  // },
   mainTxt: {
-    textAlign: "left",
-    marginTop: 6,
-    fontSize: 20,
-    color: "#dadada",
-    paddingHorizontal: 12,
+    marginTop: "15%",
+    fontWeight: "600",
+    color: "#ffffff",
+    textAlign: "center",
+    fontSize: 24,
   },
   imageContainer: {
     overflow: "hidden",
@@ -293,7 +342,7 @@ const styles = StyleSheet.create({
     shadowColor: "#ffff",
     shadowOpacity: 0.4,
     shadowRadius: 10,
-    elevation: 8,
+    elevation: 10,
   },
   gradient: {
     position: "absolute",
@@ -304,7 +353,6 @@ const styles = StyleSheet.create({
 
   },
   imageStyle: {
-    borderRadius: 12,
     resizeMode: "cover"
   },
 
@@ -328,7 +376,7 @@ const styles = StyleSheet.create({
   },
   explanation: {
     marginTop: 12,
-    color: "#A4A4A4",
+    color: "#C8C6C6FF",
     lineHeight: 22,
     textAlign: "justify",
   },

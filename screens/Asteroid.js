@@ -16,9 +16,6 @@ import { useEffect, useState } from 'react';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 
-
-
-
 const Asteroid = () => {
   const NASA_KEY = Constants.expoConfig.extra.nasaApiKey;
 
@@ -57,6 +54,7 @@ const Asteroid = () => {
       console.log("Unable to fetch data: ", error)
     }
   }
+
 
   function apiMappedData() {
     // if (!apiData) return;

@@ -66,10 +66,10 @@ const TabNavigator = () => {
                 headerTitleAlign: "center",
                 headerStyle: { backgroundColor: "#000000" },
                 tabBarStyle: {
-                    backgroundColor: "black",
+                    backgroundColor: "#000000",
                     borderTopColor: "#222",
-                    paddingTop: "7%",
-                    height: 100,
+                    paddingTop: "5%",
+                    height: 90,
                     alignContent: "center",
                     alignItems: "center",
                 },
@@ -78,12 +78,16 @@ const TabNavigator = () => {
             })}
         >
             <Tab.Screen options={{
-                headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
+                headerShown: false
             }} name="APOD" component={HomeScreen} />
-            <Tab.Screen options={{ headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />) }} name="Asteroid" component={Asteroid} />
-            <Tab.Screen options={{
+            {/* <Tab.Screen options={{
                 headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
-            }} name="Rover" component={Mars_rover} />
+            }} name="APOD" component={HomeScreen} /> */}
+            <Tab.Screen options={{ headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />) }} name="Asteroid" component={Asteroid} />
+            <Tab.Screen options={{ headerShown: false }} name="Rover" component={Mars_rover} />
+            {/* <Tab.Screen options={{
+                headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
+            }} name="Rover" component={Mars_rover} /> */}
             <Tab.Screen options={{
                 headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
             }} name="Favorites" component={Favs} />

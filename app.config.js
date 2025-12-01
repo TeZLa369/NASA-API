@@ -5,7 +5,11 @@ export default {
         name: "NASA-API",
         slug: "nasa-api",
         owner: "tezla",
-        icon:"./assets/nasa.png",
+        icon: "./assets/nasa.png",
+        plugins: ["expo-audio",
+            "expo-font",
+            "expo-asset"
+        ],
 
         extra: {
             nasaApiKey: process.env.NASA_API_KEY,
