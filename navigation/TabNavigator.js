@@ -1,4 +1,4 @@
-import { Image } from 'react-native';
+import { Easing, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import Asteroid from '../screens/Asteroid';
@@ -12,7 +12,6 @@ import TabIcon from "../components/TabIcon";
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
-
     const [gifOFF, setgifOFF] = useState(true);
 
     let [iconSource, seticonSource] = useState("");
@@ -73,8 +72,16 @@ const TabNavigator = () => {
                     alignContent: "center",
                     alignItems: "center",
                 },
+                animation: "fade",
+                transitionSpec: {
+                    animation: "timing", config: {
+                        duration: 500,
+                        easing: Easing.ease,
+                    }
+                },
                 tabBarActiveTintColor: "white",
                 tabBarInactiveTintColor: "gray",
+
             })}
         >
             <Tab.Screen options={{

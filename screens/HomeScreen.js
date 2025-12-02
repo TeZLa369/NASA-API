@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import Constants from "expo-constants";
 const NASA_KEY = Constants.expoConfig.extra.nasaApiKey;
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -85,7 +85,7 @@ const HomeScreen = () => {
   function apiDate() {
     if (!apiData || !apiData.date) return "Loading date...";
     const date = new Date(apiData?.date);
-   
+
 
     const newDate = date.toLocaleDateString("en-US", {
       month: "short",
