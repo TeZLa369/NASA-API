@@ -1,9 +1,15 @@
 import { Feather, Ionicons, FontAwesome5 } from '@expo/vector-icons'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Dimensions, FlatList, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-const { height: screen_height } = Dimensions.get("window");
+import * as MediaLibrary from "expo-media-library";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from 'expo-sharing';
 
+
+
+const { height: screen_height } = Dimensions.get("window");
 
 const Mars_rover = () => {
   const [apiData, setapiData] = useState([])
@@ -11,6 +17,7 @@ const Mars_rover = () => {
   const [pageNo, setpageNo] = useState(0);
   const [loading, setLoading] = useState(false);
   const [marsData, setmarsData] = useState([]);
+  const [fav, setfav] = useState(false);
 
 
   // const [marsData, setMarsData] = useState([
@@ -56,6 +63,36 @@ const Mars_rover = () => {
   //   },
   // ]);
 
+  async function saveData(key, value) {
+    try {
+      await AsyncStorage.setItem(key, value);
+      console.log("Data is saved");
+    } catch (error) {
+      console.error("Can't add to fav: ", error);
+    }
+  }
+  async function removeData(key) {
+    try {
+      await AsyncStorage.removeItem(key);
+      console.log("Data is removed");
+    } catch (error) {
+
+      console.error("Can't remove from fav: ", error);
+    }
+  }
+
+
+  async function load(key) {
+    try {
+      const data = await AsyncStorage.getItem(key);
+      // console.log(data)
+      return data;
+    } catch (error) {
+      console.log("Error while loading data: ", error);
+    }
+  }
+
+
   const onViewRef = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
       setActiveIndex(viewableItems[0].index);
@@ -77,6 +114,8 @@ const Mars_rover = () => {
       setpageNo(prev => prev + 1);
       setLoading(false);
 
+
+
     } catch (error) {
       console.log("Unable to fetch data: ", error);
     }
@@ -86,6 +125,7 @@ const Mars_rover = () => {
   function mappedData() {
     try {
       let mapData = apiData.map(obj => ({
+        imageID: "rover" + obj?.imageid,
         sol: obj?.sol,
         image: { uri: obj?.image_files?.medium },
         camera: obj?.camera?.instrument,
@@ -94,12 +134,11 @@ const Mars_rover = () => {
       }))
       setmarsData(mapData);
 
-
-
     } catch (error) {
       console.log("Unable to map data: ", error);
     }
   }
+
   function getDate(index) {
     // if (!marsData.length === 0) {
     const oldDate = new Date(marsData[index]?.date);
@@ -113,15 +152,53 @@ const Mars_rover = () => {
     return newDate;
   }
 
+  async function checkFav(imgID) {
+    if (await load(imgID) === null) {
+      setfav(false)
+    } else {
+      setfav(true)
+    }
+  }
 
   useEffect(() => {
     fetchData();
+  }, []);
 
-  }, [])
   useEffect(() => {
     if (apiData.length > 0) mappedData();
   }, [apiData]);
 
+
+
+  async function saveImage(uri) {
+    try {
+      const fileUri = FileSystem.cacheDirectory + "img.jpg";
+
+      const downloaded = await FileSystem.downloadAsync(uri, fileUri);
+
+      const asset = await MediaLibrary.createAssetAsync(downloaded.uri);
+      await MediaLibrary.createAlbumAsync("Download", asset, false);
+
+      alert("Image has been saved!");
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function shareImage(url) {
+    try {
+      const fileUri = FileSystem.cacheDirectory + "shared_image.jpg";
+
+      // 1️⃣ Download image
+      const { uri } = await FileSystem.downloadAsync(url, fileUri);
+
+      // 2️⃣ Share it
+      await Sharing.shareAsync(uri);
+
+    } catch (error) {
+      console.log("Share error:", error);
+    }
+  }
 
   return (
     // <View style={{ height: screen_height }}>
@@ -130,7 +207,7 @@ const Mars_rover = () => {
         marsData.length === 0 ? (<>
           <View style={{ justifyContent: "center", flex: 1, gap: 8 }} >
             <ActivityIndicator size="large" color="white" />
-            <Text style={styles.metaTxt}>Loading data...</Text></View>
+            <Text style={styles.metaTxt}>Loading universe...</Text></View>
         </>
         ) :
 
@@ -145,7 +222,8 @@ const Mars_rover = () => {
               <FlatList
                 data={marsData}
                 renderItem={({ item, index }) => (
-
+                  // console.log("inSide",item.imageID),
+                  // checkFav(item.imageID),
                   <View style={[styles.cardContainer, { height: screen_height }]}>
                     <Text style={styles.mainTxt}>Perseverance on Mars</Text>
 
@@ -163,18 +241,28 @@ const Mars_rover = () => {
                       <Text style={styles.caption}>{item.caption}</Text>
                     </View>
 
+                    {/* //! BTN */}
                     <View style={styles.btnContainer}>
                       {/* //! FETCHHHH */}
-                      <TouchableOpacity onPress={() => { }}>
+                      <TouchableOpacity onPress={() => {
+                        setfav(!fav);
+                        !fav ?
+                          saveData(item.imageID, (item.imageID).split("rover")[1]) : removeData(item.imageID);
+                      }}>
                         <View style={styles.btnIconContainer}>
-                          <Ionicons name='heart' size={20} color={"#D7D7D7FF"} />
+                          <Ionicons name='heart' size={20} color={
+
+                            !fav ? "#D7D7D7FF" : "#DF0000FF"} />
                           <Text style={styles.btnTxt}>Favorite</Text></View>
                       </TouchableOpacity>
-                      <TouchableOpacity>
+                      <TouchableOpacity onPress={() => {
+                        // console.log(item.image.uri)
+                        saveImage(item.image.uri)
+                      }}>
                         <View style={styles.btnIconContainer}>
                           <Feather name='download' size={20} color={"#D7D7D7FF"} />
                           <Text style={styles.btnTxt}>Download</Text></View></TouchableOpacity>
-                      <TouchableOpacity>
+                      <TouchableOpacity onPress={() => { shareImage(item.image.uri) }}>
                         <View style={styles.btnIconContainer}>
                           <FontAwesome5 name='share' size={19} color={"#D7D7D7FF"} />
                           <Text style={styles.btnTxt}>Share</Text></View>
@@ -189,13 +277,17 @@ const Mars_rover = () => {
                 onViewableItemsChanged={onViewRef.current}
                 viewabilityConfig={viewConfig.current}
                 keyExtractor={(item, index) => index.toString()}
+                onScroll={() => { checkFav(marsData[activeIndex].imageID) }}
                 ListFooterComponent={loading && <ActivityIndicator size="large" color="white" />}
                 onEndReached={fetchData}
                 onEndReachedThreshold={0.5}
                 contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 12, paddingBottom: 40 }}
-                showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
+                showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
+
+              />
             </View></ImageBackground >
-      )}</SafeAreaView >
+      )
+      }</SafeAreaView >
 
   )
 }

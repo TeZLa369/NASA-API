@@ -1,4 +1,4 @@
-import { Easing, Image } from 'react-native';
+import { Dimensions, Easing, Image, ImageBackground, Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import Asteroid from '../screens/Asteroid';
@@ -7,6 +7,8 @@ import Favs from '../screens/Favs';
 import HomeScreen from '../screens/HomeScreen';
 import { useState } from 'react';
 import TabIcon from "../components/TabIcon";
+import ScreenNav from './ScreenNav';
+
 
 
 const Tab = createBottomTabNavigator();
@@ -92,12 +94,13 @@ const TabNavigator = () => {
             }} name="APOD" component={HomeScreen} /> */}
             <Tab.Screen options={{ headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />) }} name="Asteroid" component={Asteroid} />
             <Tab.Screen options={{ headerShown: false }} name="Rover" component={Mars_rover} />
+
             {/* <Tab.Screen options={{
                 headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
             }} name="Rover" component={Mars_rover} /> */}
-            <Tab.Screen options={{
-                headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60, }} />)
-            }} name="Favorites" component={Favs} />
+            <Tab.Screen name="Favorites" component={ScreenNav} options={{ headerShown: false }} />
+
+
         </Tab.Navigator >
     );
 };

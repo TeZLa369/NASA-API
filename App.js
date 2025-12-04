@@ -4,9 +4,23 @@ import { NavigationContainer } from "@react-navigation/native";
 import { useEffect } from "react";
 import { audioBgm, unloadBgm } from "./components/audioBgm";
 import { Audio } from "expo-av";
+import * as MediaLibrary from "expo-media-library";
+
+
+
 
 
 export default function App() {
+
+  async function requestPermission() {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== "granted") {
+      alert("Permission denied!");
+    }
+  }
+  useEffect(() => {
+    requestPermission();
+  }, []);
 
   useEffect(() => {
     Audio.setAudioModeAsync({
