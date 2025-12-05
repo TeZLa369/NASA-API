@@ -25,42 +25,26 @@ const TabNavigator = () => {
             screenOptions={({ route }) => ({
 
                 tabBarIcon: ({ focused, size }) => {
+                    let iconSource;
+
                     if (route.name === "APOD") {
-                        return (
-                            <TabIcon
-                                focused={focused}
-                                gif={require("../assets/APOD_GIF.gif")}
-                                png={require("../assets/APOD.png")}
-                            />
-                        );
+                        iconSource = require("../assets/APOD.png");
+                    } else if (route.name === "Asteroid") {
+                        iconSource = require("../assets/asteroid.png");
+                    } else if (route.name === "Rover") {
+                        iconSource = require("../assets/rover.png");
+                    } else if (route.name === "Favorites") {
+                        iconSource = require("../assets/heart.png");
                     }
-                    if (route.name === "Asteroid") {
-                        return (
-                            <TabIcon
-                                focused={focused}
-                                gif={require("../assets/asteroid_gif.gif")}
-                                png={require("../assets/asteroid.png")}
-                            />
-                        );
-                    }
-                    if (route.name === "Rover") {
-                        return (
-                            <TabIcon
-                                focused={focused}
-                                gif={require("../assets/rover_gif.gif")}
-                                png={require("../assets/rover.png")}
-                            />
-                        );
-                    }
-                    if (route.name === "Favorites") {
-                        return (
-                            <TabIcon
-                                focused={focused}
-                                gif={require("../assets/heart_gif.gif")}
-                                png={require("../assets/heart.png")}
-                            />
-                        );
-                    }
+                    return (<Image
+                        source={iconSource}
+                        style={{
+                            width: 45,
+                            height: 45,
+                            resizeMode: "contain",
+                            marginBottom: 12
+                        }}
+                    />);
                 },
                 tabBarShowLabel: true,
                 headerShown: true,
