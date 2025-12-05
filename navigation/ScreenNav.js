@@ -2,6 +2,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Favs from "../screens/Favs";
 import CommonFavScreen from "../screens/CommonFavScreen";
 import AsteroidFav from "../screens/AsteroidFav";
+import { Image } from "react-native";
 
 const Stack = createStackNavigator();
 
@@ -13,7 +14,7 @@ export default function ScreenNav() {
             }}>
             <Stack.Screen name="Favs" component={Favs} />
             <Stack.Screen name="CommonFavScreen" component={CommonFavScreen} />
-            <Stack.Screen name="AsteroidFav" component={AsteroidFav} />
+            <Stack.Screen options={{headerLeft:()=>null, headerTitleAlign: "center", headerStyle: { backgroundColor: "#000000" }, headerShown: true, headerTitle: () => (<Image source={require("../assets/nasa.png")} height={100} width={100} style={{ height: 50, width: 60 }} />) }} name="AsteroidFav" component={AsteroidFav} />
         </Stack.Navigator>
     );
 }

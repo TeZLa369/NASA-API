@@ -2,259 +2,300 @@ import {
   StyleSheet,
   Text,
   View,
-  Image,
-  ScrollView,
   Pressable,
-  Animated,
   TouchableOpacity,
   FlatList,
-  Button
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from "expo-constants";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Asteroid = () => {
-  const NASA_KEY = Constants.expoConfig.extra.nasaApiKey;
+  const NASA_KEY = Constants.expoConfig?.extra?.nasaApiKey || "DEMO_KEY"; // Fallback if config is missing
 
-  const [apiData, setApiData] = useState([]);
-  const [calender, setcalender] = useState(false);
-  const [selectedDate, setSelectedDate] = useState();
-  const [monthDate, setmonthDate] = useState();
-  const [customDate, setcustomDate] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const today = new Date();
-  const formattedDate = today.toISOString().split("T")[0]
+  // Initial state is empty array, not dummy data
+  const [objData, setObjData] = useState([]);
 
+  // Helper to format date as YYYY-MM-DD (Local Time, not UTC)
+  const formatDateForAPI = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
+  const getDisplayDate = () => {
+    return selectedDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric"
+    });
+  };
 
-  const [objData, setobjData] = useState([
-    {
-      asteroidName: "...",
-      sizeMin: "...",
-      sizeMax: "...",
-      threat: "...",
-      speed: "...",
-      distance: "...",
-    }
-  ]);
-
-  async function fetchData(date) {
+  // 1. Check if item is saved in AsyncStorage
+  const isAsteroidSaved = async (id) => {
     try {
-      const res = await fetch(`https://api.nasa.gov/neo/rest/v1/feed?start_date=${date}&end_date=${date}&api_key=${NASA_KEY}`);
+      const item = await AsyncStorage.getItem("nro" + id);
+      return item !== null;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // 2. Fetch, Map, and Check Favorites in one flow
+  const fetchData = async (dateObj) => {
+    setLoading(true);
+    const dateStr = formatDateForAPI(dateObj);
+
+    try {
+      const res = await fetch(`https://api.nasa.gov/neo/rest/v1/feed?start_date=${dateStr}&end_date=${dateStr}&api_key=${NASA_KEY}`);
       const data = await res.json();
 
-      // console.log(data.near_earth_objects[date])
-      setApiData(data.near_earth_objects[date]);
-      apiMappedData();
+      const rawList = data.near_earth_objects?.[dateStr] || [];
+
+      // Process all items in parallel
+      const processedData = await Promise.all(rawList.map(async (obj) => {
+        const savedStatus = await isAsteroidSaved(obj.id);
+
+        return {
+          id: obj.id,
+          asteroidName: obj.name,
+          sizeMin: Math.round(obj.estimated_diameter?.meters?.estimated_diameter_min),
+          sizeMax: Math.round(obj.estimated_diameter?.meters?.estimated_diameter_max),
+          threat: obj.is_potentially_hazardous_asteroid,
+          speed: parseFloat(obj.close_approach_data[0]?.relative_velocity?.kilometers_per_second).toFixed(2),
+          distance: parseFloat(obj.close_approach_data[0]?.miss_distance?.kilometers).toFixed(0),
+          saved: savedStatus
+        };
+      }));
+
+      setObjData(processedData);
 
     } catch (error) {
-      console.log("Unable to fetch data: ", error)
+      console.log("Unable to fetch data: ", error);
+      Alert.alert("Error", "Failed to fetch asteroid data.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
+  const toggleFavorite = async (item) => {
+    setObjData(prev => prev.map(el =>
+      el.id === item.id ? { ...el, saved: !el.saved } : el
+    ));
 
-  function apiMappedData() {
-    // if (!apiData) return;
+    const key = "nro" + item.id;
     try {
-      let object_data1 = apiData.map(obj => ({
-        asteroidName: obj?.name,
-        sizeMin: obj?.estimated_diameter?.meters?.estimated_diameter_min,
-        sizeMax: obj?.estimated_diameter?.meters?.estimated_diameter_max,
-        threat: obj?.is_potentially_hazardous_asteroid,
-        speed: obj?.close_approach_data[0]?.relative_velocity?.kilometers_per_second,
-        distance: obj?.close_approach_data[0]?.miss_distance?.kilometers
-      }))
+      if (!item.saved) {
+        await AsyncStorage.setItem(key, JSON.stringify({ ...item, saved: true }));
+      } else {
 
-      setobjData(object_data1);
+        await AsyncStorage.removeItem(key);
+      }
+    } catch (error) {
+      console.error("Storage Error", error);
     }
-    catch (e) {
-      console.error("Unable to mapped the data: ", e);
-    }
-  }
-
-  function dateTxt() {
-    if (customDate) {
-      const formatted = monthDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric"
-      });
-      return formatted;
-    }
-    else {
-      const formatted = today.toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric"
-      });
-      return formatted;
-    }
-  }
+  };
 
   useEffect(() => {
-    selectedDate ? fetchData(selectedDate) :
-      fetchData(formattedDate);
-  }, [])
-
-
-  useEffect(() => {
-    if (apiData) {
-      apiMappedData();
-    }
-  }, [apiData]);
+    fetchData(selectedDate);
+  }, [selectedDate]);
 
   return (
-    <SafeAreaView edges={["left", "right",]} style={styles.container}>
-      {/* //! TITLE */}
-      <Text style={[styles.mainTxt, { fontSize: 18 }]}>Near Earth Objects</Text>
+    <SafeAreaView edges={["left", "right"]} style={styles.container}>
+      <Text style={styles.mainTxt}>Near Earth Objects</Text>
 
-      {/* //! DATE */}
-      <Pressable style={styles.dateStyle} onPress={() => {
-        setcalender(true)
-      }}>
-        <Text style={[{ fontSize: 16, color: "#FFFFFF" }]}> 🗓️ {dateTxt()} ▼</Text>
-
-        <DateTimePickerModal
-          isVisible={calender}
-          mode='date'
-          minimumDate={new Date(1995, 5, 16)}
-          maximumDate={new Date()}
-          themeVariant='dark'
-          date={monthDate}
-          onCancel={() => { setcalender(false); }}
-          onConfirm={(date) => {
-            const formattedDate = date.toISOString().split("T")[0];
-            setSelectedDate(formattedDate);
-            setmonthDate(date)
-            fetchData(formattedDate);
-            setcalender(false);
-            setcustomDate(true);
-          }}
-        />
+      {/* DATE PICKER */}
+      <Pressable style={styles.dateStyle} onPress={() => setCalendarVisible(true)}>
+        <Text style={styles.dateText}> 🗓️ {getDisplayDate()} ▼</Text>
       </Pressable>
 
-      <FlatList
-        data={objData}
-        renderItem={({ item }) => (
-          <View style={styles.cardContainer}>
+      <DateTimePickerModal
+        isVisible={calendarVisible}
+        mode='date'
+        maximumDate={new Date()}
+        themeVariant='dark'
+        date={selectedDate}
+        onConfirm={(date) => {
+          setSelectedDate(date);
+          setCalendarVisible(false);
+        }}
+        onCancel={() => setCalendarVisible(false)}
+      />
 
-            {/* Top Row */}
-            <View style={styles.topRow}>
-              <Text style={styles.asteroidName}>{item.asteroidName}</Text>
-              <View style={[styles.badge, item.threat ? styles.hazardBadge : styles.safeBadge]}>
-                <Text style={styles.badgeText}>
-                  {item.threat ? "Hazardous" : "Safe"}
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#1E90FF" />
+          <Text style={{ color: '#888', marginTop: 10 }}>Scanning Space...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={objData}
+          // IMPORTANT: Use ID, not index
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 12, paddingBottom: 40 }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No asteroids found near earth today.</Text>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.cardContainer}>
+
+              {/* Top Row */}
+              <View style={styles.topRow}>
+                {/* Limit name width to prevent overlap */}
+                <Text style={styles.asteroidName} numberOfLines={1}>
+                  {item.asteroidName.replace(/[()]/g, '')}
                 </Text>
+                <View style={[styles.badge, item.threat ? styles.hazardBadge : styles.safeBadge]}>
+                  <Text style={styles.badgeText}>
+                    {item.threat ? "Hazardous" : "Safe"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Data Rows */}
+              <View style={styles.infoContainer}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Diameter</Text>
+                  <Text style={styles.value}>{item.sizeMin}m - {item.sizeMax}m</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Speed</Text>
+                  <Text style={styles.value}>{item.speed} km/s</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Distance</Text>
+                  <Text style={styles.value}>{Number(item.distance).toLocaleString()} km</Text>
+                </View>
+              </View>
+
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={styles.favButton}
+                  onPress={() => toggleFavorite(item)}
+                >
+                  <Ionicons
+                    name={item.saved ? 'heart' : 'heart-outline'}
+                    size={24}
+                    color={item.saved ? "#DF0000" : "#D7D7D7"}
+                  />
+                  <Text style={{ color: '#aaa', marginLeft: 8 }}>
+                    {item.saved ? "Saved" : "Save"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
-
-            {/* Middle Row */}
-            <View style={styles.infoRow}>
-              <Text style={styles.infoText}>
-                Size: {item.sizeMin}m – {item.sizeMax}m
-              </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoText}>Speed: {item.speed} km/s</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoText}>Distance: {item.distance} km</Text>
-            </View>
-          </View>
-
-        )}
-
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 12, paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
-
-
+          )}
+        />
+      )}
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default Asteroid
+export default Asteroid;
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#000000",
     flex: 1,
-    paddingHorizontal: 0
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   dateStyle: {
-    margin: 8,
+    margin: 12,
     backgroundColor: "#111111",
-    borderWidth: 0.2,
-    borderColor: "#1E90FF",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: "#333",
+    paddingVertical: 12,
     borderRadius: 8,
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 6,
+  },
+  dateText: {
+    fontSize: 16,
+    color: "#1E90FF",
+    fontWeight: "bold"
   },
   mainTxt: {
-    textAlign: "left",
-    marginTop: 6,
-    fontSize: 20,
-    color: "#dadada",
-    paddingHorizontal: 12,
+    marginTop: 10,
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: "#fff",
+    paddingHorizontal: 16,
+  },
+  emptyText: {
+    color: '#555',
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16
   },
   cardContainer: {
     backgroundColor: "#1A1A1D",
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
-    marginVertical: 10,
-    borderColor: "#2F2F32",
+    marginVertical: 8,
+    borderColor: "#333",
     borderWidth: 1,
   },
-
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 12,
   },
-
   asteroidName: {
     fontSize: 20,
-    fontWeight: "600",
-    color: "#EDEDED",
+    fontWeight: "bold",
+    color: "#fff",
+    flex: 1,
   },
-
   badge: {
     paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    borderRadius: 6,
   },
-
   badgeText: {
     color: "#fff",
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "bold",
+    textTransform: 'uppercase'
   },
+  hazardBadge: { backgroundColor: "#C02929" },
+  safeBadge: { backgroundColor: "#138A36" },
 
-  hazardBadge: {
-    backgroundColor: "#C02929", // red
+  infoContainer: {
+    backgroundColor: '#111',
+    padding: 12,
+    borderRadius: 8,
   },
-
-  safeBadge: {
-    backgroundColor: "#138A36", // green
-  },
-
   infoRow: {
-    marginTop: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
   },
+  label: { color: "#777", fontSize: 14 },
+  value: { color: "#ddd", fontSize: 14, fontWeight: "600" },
 
-  infoText: {
-    color: "#C5C5C5",
-    fontSize: 14,
+  actionRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: 'center'
   },
-
-})
+  favButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 4
+  }
+});
