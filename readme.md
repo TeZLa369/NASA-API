@@ -41,20 +41,17 @@ This project focuses on clean UI, real-time API integration, and a smooth, user-
 📦 Installation:
 
 # Clone the repo
-
-git clone <your-repo-link>
+git clone https://github.com/TeZLa369/NASA-API.git
 
 # Go into project folder
-
-cd <project-folder>
+cd NASA-API
 
 # Install dependencies
-
 npm install
 
 # Start the project
-
 npx expo start
+
 
 🌐 Live Demo:
 Coming Soon (Expo Web + Vercel Deployment in Progress 🚀)
