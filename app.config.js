@@ -2,8 +2,8 @@ import "dotenv/config";
 
 export default {
     expo: {
-        name: "NASA-API",
-        slug: "nasa-api",
+        name: "Cosmic Explorer",
+        slug: "Cosmic Explorer",
         owner: "tezla",
         icon: "./assets/nasa.png",
         plugins: ["expo-audio",
@@ -26,7 +26,7 @@ export default {
         },
 
         android: {
-            package: "com.kuntal.nasaapi",
+            package: "com.kuntal.cosmicexplorer",
             versionCode: 1,
         },
     },
