@@ -22,7 +22,7 @@ This project focuses on clean UI, real-time API integration, and a smooth, user-
 <img src="screenshots/APOD.jpg" width="300" height="600" />
 
 ### Astronomy Picture of the Day (APOD)
-<img src="screenshots/apod.jpg" width="300" height="600" />
+<img src="screenshots/APOD.jpg" width="300" height="600" />
 
 ### Mars Rover Image Scrolling
 <img src="screenshots/mars_rover.jpg" width="300" height="600" />
@@ -32,6 +32,8 @@ This project focuses on clean UI, real-time API integration, and a smooth, user-
 
 ### Favorites Screen
 <img src="screenshots/favSection.jpg" width="300" height="600" />
+
+
 
 
 📦 Installation:
