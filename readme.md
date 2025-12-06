@@ -1,31 +1,60 @@
-🌌 NASA Explorer App:
+🌌 NASA Explorer App
 A React Native app built with Expo, using 100% free NASA APIs to display space images, Mars rover photos, and asteroid data.
-This project is focused on clean UI, API integration, and smooth user experience.
+This project focuses on clean UI, real-time API integration, and a smooth, user-friendly experience.
 
 🚀 Features:
-    • Astronomy Picture of the Day (APOD)
-    • Mars Rover Photos (Curiosity, Opportunity, Perseverance)
-    • Asteroid Tracker using NASA NeoWs API
-    • Dark theme UI for a premium space look
-    • Easy navigation and simple user flow
+🌠 Astronomy Picture of the Day (APOD)
+🤖 Mars Rover Photos (Perseverance)
+🔄 Horizontal Rover Image Scrolling for smooth browsing
+☄️ Asteroid Tracker using NASA NeoWs API
+🌙 Dark theme UI for a premium space look
+🧭 Easy navigation and simple user flow
 
 🛠️ Tech Stack:
-    • React Native
-    • Expo
-    • NASA Open APIs
-    • Fetch API for network calls
+• React Native
+• Expo
+• NASA Open APIs
+• Fetch API for network calls
+
+🖼️ Screenshots:
+
+### Home Screen
+
+![Home](screenshots/APOD.jpg)
+
+### Astronomy Picture of the Day (APOD)
+
+![APOD](screenshots/apod.jpg)
+
+### Mars Rover Image Scrolling
+
+![Mars Rover](screenshots/mars_rover.jpg)
+
+### Asteroid Tracker
+
+![Asteroids](screenshots/asteroids.jpg)
+
+### Favorites Screen
+
+![Favorites](screenshots/favSection.jpg)
 
 📦 Installation:
+
 # Clone the repo
+
 git clone <your-repo-link>
 
 # Go into project folder
+
 cd <project-folder>
 
 # Install dependencies
+
 npm install
 
 # Start the project
+
 npx expo start
 
-
+🌐 Live Demo:
+Coming Soon (Expo Web + Vercel Deployment in Progress 🚀)
