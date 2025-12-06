@@ -3,7 +3,7 @@ import "dotenv/config";
 export default {
     expo: {
         name: "Cosmic Explorer",
-        slug: "Cosmic Explorer",
+        slug: "nasa-api",
         owner: "tezla",
         icon: "./assets/nasa.png",
         plugins: ["expo-audio",
