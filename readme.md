@@ -18,8 +18,6 @@ This project focuses on clean UI, real-time API integration, and a smooth, user-
 
 🖼️ Screenshots:
 
-### Home Screen
-<img src="screenshots/APOD.jpg" width="300" height="600" />
 
 ### Astronomy Picture of the Day (APOD)
 <img src="screenshots/APOD.jpg" width="300" height="600" />
