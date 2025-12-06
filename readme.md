@@ -37,10 +37,10 @@ This project focuses on clean UI, real-time API integration, and a smooth, user-
 📦 Installation:
 
 # Clone the repo
-git clone https://github.com/TeZLa369/NASA-API.git
+https://github.com/TeZLa369/Cosmic-Explorer.git
 
 # Go into project folder
-cd NASA-API
+cd Cosmic-Explorer
 
 # Install dependencies
 npm install
