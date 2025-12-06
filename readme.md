@@ -19,24 +19,20 @@ This project focuses on clean UI, real-time API integration, and a smooth, user-
 🖼️ Screenshots:
 
 ### Home Screen
-
-![Home](screenshots/APOD.jpg)
+<img src="screenshots/APOD.jpg" width="300" height="600" />
 
 ### Astronomy Picture of the Day (APOD)
-
-![APOD](screenshots/apod.jpg)
+<img src="screenshots/apod.jpg" width="300" height="600" />
 
 ### Mars Rover Image Scrolling
-
-![Mars Rover](screenshots/mars_rover.jpg)
+<img src="screenshots/mars_rover.jpg" width="300" height="600" />
 
 ### Asteroid Tracker
-
-![Asteroids](screenshots/asteroids.jpg)
+<img src="screenshots/asteroids.jpg" width="300" height="600" />
 
 ### Favorites Screen
+<img src="screenshots/favSection.jpg" width="300" height="600" />
 
-![Favorites](screenshots/favSection.jpg)
 
 📦 Installation:
 
