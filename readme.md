@@ -37,7 +37,7 @@ This project focuses on clean UI, real-time API integration, and a smooth, user-
 📦 Installation:
 
 # Clone the repo
-https://github.com/TeZLa369/Cosmic-Explorer.git
+git clone https://github.com/TeZLa369/Cosmic-Explorer.git
 
 # Go into project folder
 cd Cosmic-Explorer
